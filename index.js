@@ -2,7 +2,7 @@ const express=require('express');
 const app=express();
 const cors=require('cors')
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port=process.env.port || 3000;
 
 app.use(cors());
@@ -39,14 +39,25 @@ async function run(){
             const result=await cursor.toArray();
             res.send(result);
 
-            //all vehicles page
+           
+          })
+
+           //all vehicles page
             app.get('/allProperty',async(req,res)=>{
                  
-                const result=await dataCollection.find().toArray();
+                const result=await dataCollection.find().sort({pricePerDay:1}).toArray();
                  res.send(result)
                 
             })
-          })
+
+
+            app.get('/viewdetail/:id',async(req,res)=>{
+                  
+                  const id=req.params.id;
+                  const query={_id: new ObjectId(id)};
+                  const result=await dataCollection.findOne(query);
+                  res.send(result);
+            })
     }
 
     finally{
