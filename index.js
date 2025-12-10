@@ -32,7 +32,7 @@ async function run(){
 
           const database=client.db('TravelDB');
           const dataCollection=database.collection("properties")
-          
+          const vehicleCollection=database.collection('vehicle')
           //home page
           app.get('/properties',async(req,res)=>{
             const cursor=dataCollection.find().limit(6);
@@ -50,13 +50,23 @@ async function run(){
                 
             })
 
-
+              //view details api
             app.get('/viewdetail/:id',async(req,res)=>{
                   
                   const id=req.params.id;
                   const query={_id: new ObjectId(id)};
                   const result=await dataCollection.findOne(query);
                   res.send(result);
+            })
+
+
+            app.post('/addvehicle',async(req,res)=>{
+                      
+                   const query=req.body;
+                   
+                   const result=await vehicleCollection.insertOne(query);
+                   res.send(result) 
+
             })
     }
 
