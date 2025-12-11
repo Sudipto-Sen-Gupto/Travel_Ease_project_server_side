@@ -32,8 +32,8 @@ async function run(){
 
           const database=client.db('TravelDB');
           const dataCollection=database.collection("properties")
-          const vehicleCollection=database.collection('vehicle')
-          const vehicleInfoCollection=database.collection('vehicleInfo')
+          const myVehicleCollection=database.collection('vehicle')
+          const bookingVehicleInfoCollection=database.collection('vehicleInfo')
           //home page
           app.get('/properties',async(req,res)=>{
             const cursor=dataCollection.find().limit(6);
@@ -62,8 +62,20 @@ async function run(){
 
             app.post('/vehicleDetail',async(req,res)=>{
                        
-                  const query=req.body;
-                  const result=await vehicleInfoCollection.insertOne(query);
+                  
+                  const detail=req.body;
+
+                  const query={
+                    vehicleId:detail.vehicleId,
+                    userEmail:detail.userEmail
+                  }
+
+                  const vehicleExist=await bookingVehicleInfoCollection.findOne(query);
+
+                  if(vehicleExist){
+                    return res.send({exist:true})
+                  }
+                  const result=await bookingVehicleInfoCollection.insertOne(detail);
                   res.send(result)
             })
 
@@ -72,9 +84,35 @@ async function run(){
                       
                    const query=req.body;
                    
-                   const result=await vehicleCollection.insertOne(query);
+                   const result=await myVehicleCollection.insertOne(query);
                    res.send(result) 
 
+            })
+
+            app.get('/addvehicle/email',async(req,res)=>{
+                   
+                  const email=req.query.email;
+
+                  const query={}
+
+                  if(email){
+                      query.email=email
+                  }
+               
+
+                  const result=await myVehicleCollection.find(query).toArray();
+
+                  res.send(result);
+                   
+            })
+
+            app.delete('/removevehicle/:id',async(req,res)=>{
+                        
+                     const id=req.params.id;
+                     const query={_id: new ObjectId(id)}
+
+                     const result=await myVehicleCollection.deleteOne(query);
+                     res.send(result);
             })
     }
 
