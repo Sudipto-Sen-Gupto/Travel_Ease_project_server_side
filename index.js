@@ -33,6 +33,7 @@ async function run(){
           const database=client.db('TravelDB');
           const dataCollection=database.collection("properties")
           const vehicleCollection=database.collection('vehicle')
+          const vehicleInfoCollection=database.collection('vehicleInfo')
           //home page
           app.get('/properties',async(req,res)=>{
             const cursor=dataCollection.find().limit(6);
@@ -59,7 +60,14 @@ async function run(){
                   res.send(result);
             })
 
+            app.post('/vehicleDetail',async(req,res)=>{
+                       
+                  const query=req.body;
+                  const result=await vehicleInfoCollection.insertOne(query);
+                  res.send(result)
+            })
 
+       //addvehicle api
             app.post('/addvehicle',async(req,res)=>{
                       
                    const query=req.body;
