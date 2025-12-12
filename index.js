@@ -51,7 +51,7 @@ async function run(){
                 
             })
 
-              //view details api
+              //view details
             app.get('/viewdetail/:id',async(req,res)=>{
                   
                   const id=req.params.id;
@@ -59,7 +59,8 @@ async function run(){
                   const result=await dataCollection.findOne(query);
                   res.send(result);
             })
-
+              
+            //booking api
             app.post('/vehicleDetail',async(req,res)=>{
                        
                   
@@ -78,6 +79,20 @@ async function run(){
                   const result=await bookingVehicleInfoCollection.insertOne(detail);
                   res.send(result)
             })
+           
+          app.get('/vehicleBooking/email',async(req,res)=>{
+                
+            const email=req.query.email;
+
+            const query={};
+            
+            if(email){
+              query.userEmail=email
+            }
+            const result=await bookingVehicleInfoCollection.find(query).toArray();
+            res.send(result);
+
+          })
 
        //addvehicle api
             app.post('/addvehicle',async(req,res)=>{
