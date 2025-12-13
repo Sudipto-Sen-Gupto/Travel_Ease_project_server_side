@@ -3,11 +3,24 @@ const app=express();
 const cors=require('cors')
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const admin = require("firebase-admin");
 const port=process.env.port || 3000;
 
-app.use(cors());
-app.use(express.json()); 
 
+
+ 
+//middleware
+     const serviceAccount = require("./travel-agency-project.json");
+
+       admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+       });
+          
+        //  console.log(admin.auth);
+
+          app.use(cors());
+          app.use(express.json()); 
+       
 
 //
 //
@@ -22,6 +35,32 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+
+  const verifyFBToken=async(req,res,next)=>{
+      const authorization=req.headers.authorization;
+
+      if(!authorization){
+        return res.status(401).send({message:'Unathorized'})
+      }
+
+      const token=authorization.split(' ')[1];
+      if(!token){
+        return res.status(401).send({message:'Unauthorized'})
+      }
+
+      try{
+            const decode=  await  admin.auth().verifyIdToken(token)
+           
+            req.token_email=decode.email;
+               console.log('token=',decode);
+
+            next();
+      }
+
+      catch{
+            res.status(401).send({message:'Unauthorized'})
+      }
+  }
 
 
 async function run(){
@@ -52,7 +91,7 @@ async function run(){
             })
 
               //view details
-            app.get('/viewdetail/:id',async(req,res)=>{
+            app.get('/viewdetail/:id',verifyFBToken,async(req,res)=>{
                   
                   const id=req.params.id;
                   const query={_id: new ObjectId(id)};
@@ -61,7 +100,7 @@ async function run(){
             })
               
             //booking api
-            app.post('/vehicleDetail',async(req,res)=>{
+            app.post('/vehicleDetail',verifyFBToken,async(req,res)=>{
                        
                   
                   const detail=req.body;
@@ -80,14 +119,18 @@ async function run(){
                   res.send(result)
             })
            
-          app.get('/vehicleBooking/email',async(req,res)=>{
+          app.get('/vehicleBooking/email',verifyFBToken,async(req,res)=>{
                 
             const email=req.query.email;
-
+         
             const query={};
             
             if(email){
               query.userEmail=email
+
+              if(email !=req.token_email){
+                res.status(403).send({message:'Forbidden'})
+              }
             }
             const result=await bookingVehicleInfoCollection.find(query).toArray();
             res.send(result);
@@ -95,7 +138,7 @@ async function run(){
           })
 
        //addvehicle api
-            app.post('/addvehicle',async(req,res)=>{
+            app.post('/addvehicle',verifyFBToken,async(req,res)=>{
                       
                    const query=req.body;
                    
@@ -104,7 +147,7 @@ async function run(){
 
             })
 
-            app.get('/addvehicle/email',async(req,res)=>{
+            app.get('/addvehicle/email',verifyFBToken,async(req,res)=>{
                    
                   const email=req.query.email;
 
@@ -112,6 +155,10 @@ async function run(){
 
                   if(email){
                       query.email=email
+
+                      if(email !=req.token_email){
+                        res.status(404).send({message:'Forbidden'})
+                      }
                   }
                
 
@@ -121,7 +168,7 @@ async function run(){
                    
             })
 
-            app.delete('/removevehicle/:id',async(req,res)=>{
+            app.delete('/removevehicle/:id',verifyFBToken,async(req,res)=>{
                         
                      const id=req.params.id;
                      const query={_id: new ObjectId(id)}
