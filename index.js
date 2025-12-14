@@ -86,7 +86,7 @@ async function run(){
             app.get('/allProperty',async(req,res)=>{
                  
                 const result=await dataCollection.find().sort({pricePerDay:1}).toArray();
-                 res.send(result)
+                 res.send(result);
                 
             })
 
@@ -116,7 +116,7 @@ async function run(){
                     return res.send({exist:true})
                   }
                   const result=await bookingVehicleInfoCollection.insertOne(detail);
-                  res.send(result)
+                  res.send(result);
             })
            
           app.get('/vehicleBooking/email',verifyFBToken,async(req,res)=>{
@@ -143,9 +143,11 @@ async function run(){
                    const query=req.body;
                    
                    const result=await myVehicleCollection.insertOne(query);
-                   res.send(result) 
+                   res.send(result); 
 
             })
+
+            
 
             app.get('/addvehicle/email',verifyFBToken,async(req,res)=>{
                    
@@ -175,6 +177,43 @@ async function run(){
 
                      const result=await myVehicleCollection.deleteOne(query);
                      res.send(result);
+            })
+
+
+            app.get('/addvehicle/:id',async(req,res)=>{
+                   
+                  const id=req.params.id;
+                  const query={_id:new ObjectId(id)};
+
+                  const result=await myVehicleCollection.findOne(query);
+                  res.send(result);
+            })
+
+            //update api
+            app.patch('/addvehicle/:id',async(req,res)=>{
+                     
+                      const id=req.params.id;
+                      const query={_id:new ObjectId(id)};
+                        
+                      //  console.log(req.body);
+                      const updatedData=req.body;
+
+                      const updateVehicle={
+                        $set:{
+                                  vehicleName: updatedData.vehicleName,
+                                  ownerName: updatedData.ownerName,
+                                  category: updatedData.category,
+                                  price: updatedData.price,
+                                  location: updatedData.location,
+                                  availability: updatedData.availability,
+                                  description: updatedData.description,
+                                  coverImage: updatedData.coverImage,
+                        }
+                      }
+
+                      const result=await myVehicleCollection.updateOne(query,updateVehicle);
+
+                      res.send(result);
             })
     }
 
