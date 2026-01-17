@@ -4,13 +4,18 @@ const cors=require('cors')
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const admin = require("firebase-admin");
-const port=process.env.port || 3000;
+
+const port=process.env.PORT || 3000;
 
 
 
  
 //middleware
-     const serviceAccount = require("./travel-agency-project.json");
+    //  const serviceAccount = require("./travel-agency-project.json");
+
+    // index.js
+const decoded = Buffer.from(process.env.FIREBASE_SERVICE_KEY, "base64").toString("utf8");
+const serviceAccount = JSON.parse(decoded);
 
        admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
@@ -85,8 +90,15 @@ async function run(){
            //all vehicles page
             app.get('/allProperty',async(req,res)=>{
                  
-                const result=await dataCollection.find().sort({pricePerDay:1}).toArray();
-                 res.send(result);
+              
+               const {limit=0,skip=0}=req.query
+               
+               const limitNumber=Number(limit);
+               const skipNumber=Number(skip);
+              //  console.log(limitNumber,skipNumber);
+              const count=await dataCollection.countDocuments();
+                const result=await dataCollection.find().sort({pricePerDay:1}).limit(limitNumber).skip(skipNumber).project({description:0}).toArray();
+                 res.send({result,total:count});
                 
             })
 
@@ -229,4 +241,4 @@ app.get('/',(req,res)=>{
  
 app.listen(port,()=>{
     console.log("Port moves to",port);
-})
+}) 
