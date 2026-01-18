@@ -91,17 +91,20 @@ async function run(){
             app.get('/allProperty',async(req,res)=>{
                  
               
-               const {limit=0,skip=0,sort,order}=req.query
-              //  console.log(limit,skip,sort,order);
+               const {limit=0,skip=0,sort='pricePerDay',order='asc',search=''}=req.query
+              //  console.log(limit,skip,sort,order,search);
 
                const limitNumber=Number(limit);
                const skipNumber=Number(skip);
               //  console.log(limitNumber,skipNumber);
 
               const sortDocument={};
-              sortDocument[sort]=order==='asc'?1:-1
-              const count=await dataCollection.countDocuments();
-                const result=await dataCollection.find().sort(sortDocument).limit(limitNumber).skip(skipNumber).project({description:0}).toArray();
+              sortDocument[sort]=order==='asc'?1:-1;
+               
+               const query = search? { vehicleName: { $regex: search, $options: 'i' } }: {};
+
+              const count=await dataCollection.countDocuments(query);
+                const result=await dataCollection.find(query).sort(sortDocument).limit(limitNumber).skip(skipNumber).project({description:0}).toArray();
                  res.send({result,total:count});
                 
             })
