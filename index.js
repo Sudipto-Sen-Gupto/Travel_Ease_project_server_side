@@ -91,13 +91,17 @@ async function run(){
             app.get('/allProperty',async(req,res)=>{
                  
               
-               const {limit=0,skip=0}=req.query
-               
+               const {limit=0,skip=0,sort,order}=req.query
+              //  console.log(limit,skip,sort,order);
+
                const limitNumber=Number(limit);
                const skipNumber=Number(skip);
               //  console.log(limitNumber,skipNumber);
+
+              const sortDocument={};
+              sortDocument[sort]=order==='asc'?1:-1
               const count=await dataCollection.countDocuments();
-                const result=await dataCollection.find().sort({pricePerDay:1}).limit(limitNumber).skip(skipNumber).project({description:0}).toArray();
+                const result=await dataCollection.find().sort(sortDocument).limit(limitNumber).skip(skipNumber).project({description:0}).toArray();
                  res.send({result,total:count});
                 
             })
